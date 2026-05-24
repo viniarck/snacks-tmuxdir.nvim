@@ -55,6 +55,8 @@ local function build_sessions_source()
 
       sessions_delete = function(picker, item)
         if not item then return end
+        local choice = vim.fn.confirm("Kill tmux session '" .. item.name .. "'?", "&Yes\n&No", 2)
+        if choice ~= 1 then return end
         local tmux = require("snacks_tmuxdir.tmux")
         tmux.kill_session(item.name)
         picker:refresh()
@@ -83,7 +85,7 @@ local function build_dirs_source()
         local repos = utils.find_git_repos(find_cmd, base_dir)
         for _, repo in ipairs(repos) do
           table.insert(items, {
-            text = repo,
+            text = vim.fn.fnamemodify(repo, ":~"),
             dir  = repo,
             name = utils.dir_to_session_name(repo),
           })
@@ -117,17 +119,26 @@ local function build_dirs_source()
 
       dirs_extra = function(picker, item)
         if not item then return end
-        local dir = item.dir
+        local tmux      = require("snacks_tmuxdir.tmux")
+        local dir       = item.dir
         local base_name = item.name
         local shell_cmd = picker.opts.shell_cmd or config.shell_cmd
+
+        local sessions = tmux.mapped_sessions()
+        local pattern  = "^" .. vim.pesc(base_name) .. "%-(%d+)$"
+        local max      = 0
+        for name, _ in pairs(sessions) do
+          local n = tonumber(name:match(pattern))
+          if n and n > max then max = n end
+        end
+        local default = tostring(max + 1)
+
         picker:close()
-        vim.ui.input({ prompt = "Session suffix: " }, function(suffix)
+        vim.ui.input({ prompt = "Session suffix: ", default = default }, function(suffix)
           if not suffix or suffix == "" then return end
-          local tmux     = require("snacks_tmuxdir.tmux")
-          local utils    = require("snacks_tmuxdir.utils")
-          local extra    = utils.replace_dots(base_name .. "-" .. suffix)
-          local sessions = tmux.mapped_sessions()
-          if not sessions[extra] then
+          local utils = require("snacks_tmuxdir.utils")
+          local extra = utils.replace_dots(base_name .. "-" .. suffix)
+          if not tmux.mapped_sessions()[extra] then
             tmux.new_session(extra, dir, shell_cmd)
           end
           tmux.switch_client(extra)

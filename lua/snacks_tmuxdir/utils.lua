@@ -12,9 +12,8 @@ function M.replace_dots(name)
 end
 
 function M.dir_to_session_name(dir)
-  local clean = (dir:gsub("/$", ""))
-  local base = vim.fn.fnamemodify(clean, ":t")
-  return M.replace_dots(base)
+  local abbreviated = vim.fn.fnamemodify(dir, ":~")
+  return M.replace_dots(abbreviated)
 end
 
 function M.find_git_repos(find_cmd, base_dir)
