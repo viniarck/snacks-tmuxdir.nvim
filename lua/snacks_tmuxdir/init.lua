@@ -40,6 +40,9 @@ local function build_sessions_source()
       return { { item.text, "Normal" } }
     end,
 
+    preview = "none",
+    layout = { preset = "select" },
+
     confirm = "sessions_switch",
 
     actions = {
@@ -74,7 +77,7 @@ local function build_dirs_source()
     finder = function(opts, ctx)
       local utils = require("snacks_tmuxdir.utils")
       local items = {}
-      local base_dirs = opts.base_dirs or {}
+      local base_dirs = opts.base_dirs or config.base_dirs
       local find_cmd  = opts.find_cmd  or config.find_cmd
       for _, base_dir in ipairs(base_dirs) do
         local repos = utils.find_git_repos(find_cmd, base_dir)
@@ -92,6 +95,9 @@ local function build_dirs_source()
     format = function(item, ctx)
       return { { item.text, "Normal" } }
     end,
+
+    preview = "none",
+    layout = { preset = "select" },
 
     confirm = "dirs_switch",
 

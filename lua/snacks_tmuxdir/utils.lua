@@ -26,7 +26,10 @@ function M.find_git_repos(find_cmd, base_dir)
   local repos = {}
   for _, line in ipairs(output) do
     if line ~= "" then
-      local repo = (line:gsub("/%.git$", ""):gsub("^%.git$", ""))
+      if line:sub(-1) == "/" then
+        line = line:sub(1, -2)
+      end
+      local repo = vim.fn.fnamemodify(line, ":h")
       if repo ~= "" then
         if repo:sub(1, 1) ~= "/" then
           repo = dir .. repo
